@@ -1,4 +1,4 @@
-CDM8 Tetris
+CDM8 Strategic Tetris
 ==============
 NSU 2020
 Group 19214
