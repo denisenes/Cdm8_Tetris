@@ -3,20 +3,16 @@ asect 0xe0
 	
 asect 0xf0
 	stack:
-	
-asect 0x70
-	x:
-	dc 0x00
 
-asect 0x71
-	y:
-	dc 0x00
 	
 asect 0xef
-br 0x14
+br 0x18
 
 asect 0xed
-br 0x46
+br 0x4A
+
+asect 0xeb
+br 0xAB
 
 # d - screen
 # a - temp
@@ -24,18 +20,24 @@ br 0x46
 # c - legacy figures
 asect 0x00
 start:
-ldi r0, 0x70
-ldi r1, 0b00010000
-st r0, r1
-ldi r0, 0x71
-ldi r1, 0
-st r0, r1
-
 ldi r0, 0b11111111
 ldi r2, 0xd8
 st r2, r0
 ldi r2, 0xc8
 st r2, r0
+
+ldi r0, 0x78
+ld r0, r0
+	#обновление типа фигуры
+if
+	tst r0
+is z #--> is/stays ne 0x48
+	ldi r0, 0x02
+else
+	dec r0
+fi
+ldi r3, 0x78
+st r3, r0
 
 br 0xef
 
@@ -58,6 +60,7 @@ is z
 then
 	#shift matrix
 	push r0
+	
 	ldi r0, 0xa8
 	ldi r1, 0xb7
 	ldi r3, 8
@@ -93,6 +96,12 @@ then
 		pop r0
 		br start
 	else
+	
+		ldi r0, 0x71
+		ld r0, r1
+		inc r1
+		and r0, r0
+		st r0, r1
 		
 		ldi r0, 0xa0
 		ldi r1, 0xc0
@@ -118,16 +127,34 @@ tst r1
 until pl
 
 push r0
-ldi r0, 0xb0
 
 ldi r2, 1
 if
 	cmp r1, r2
 is gt
 then
-#---
+	push r2
+	ldi r0, 0x90
+	ldi r1, 0xb0
+	jsr memcpy
+	br 0xeb
 else
+	#x
+	push r3
+	ldi r2, 0x70
+	ld r2, r3
+	if
+		tst r1
+	is z
+		shla r3
+	else
+		shra r3
+	fi
+	st r2, r3
+	pop r3
+	
 	ldi r2, 8
+	ldi r0, 0xb0
 	while
 		tst r2
 	stays gt
@@ -136,9 +163,9 @@ else
 			tst r1
 		is z
 		then
-			shla r3
+			shl r3
 		else
-			shra r3
+			shr r3	
 		fi
 		st r0, r3
 		dec r2
@@ -194,7 +221,6 @@ while
 			inc r1
 			inc r2
 			dec r3
-			and r0, r0
 		wend
 rts
 
@@ -209,7 +235,6 @@ memcpy:
 			inc r0
 			inc r1
 			dec r2
-			and r0, r0
 		wend
 rts
 end
