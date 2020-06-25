@@ -50,6 +50,7 @@ def getRegs(reg):
     num = int(reg, 16)
     return (num // 4, num % 4)
 
+#memory
 def ldi(byte):
     global PC, mem, curBank, r
     reg = int(byte[1])
@@ -68,6 +69,11 @@ def ld(byte):
     r[reg2] = data[reg1]
     print(str(reg1), str(reg2))
 
+def st(byte):
+    global data, r
+    (reg1, reg2) = getRegs(byte[1])
+    data[r[reg1]] = r[reg2]
+
 def br():
     global PC, mem
     PC += 1
@@ -85,6 +91,15 @@ def move(byte):
     if r[reg1] == 0:
         Z = 1
 
+#stack
+def push(reg):
+    global r
+    stack.append(r[reg])
+
+def pop(reg):
+    global r
+    r[reg%4] = stack.pop()
+
 
 ##############################
 #         main loop
@@ -99,6 +114,14 @@ while PC < 257:
         br()
     elif cell[0] == "0":
         move(cell)
+    elif cell[0] == "A":
+        st(cell)
+    elif cell[0] == "C":
+        stack_reg = int(cell[1])
+        if int(stack_reg < 4):
+            push(stack_reg)
+        else:
+            pop(stack_reg)
     checkPC(curBank, PC)
     PC+=1
 
